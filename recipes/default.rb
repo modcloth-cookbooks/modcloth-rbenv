@@ -62,6 +62,11 @@ search(:users, node['rbenv']['users_query']) do |u|
   end
 
   rubies.each do |ruby|
+    # Fix me a hash would be better  
+    extra_flags =" export CFLAGS='-DBYTE_ORDER -DLITTLE_ENDIAN' \
+                   export ac_cv_func_dl_iterate_phdr=no \
+                   export rb_cv_have_signbit=no " if ruby.eql?("1.9.3-p327")
+    
     bash "install rubies" do
       user rbenv_user
       cwd rbenv_user_dir
@@ -72,14 +77,10 @@ search(:users, node['rbenv']['users_query']) do |u|
         export CONFIGURE_OPTS='--with-opt-dir=/opt/local'
         # ruby compile flags to link correctly for smartos
         export LDFLAGS="-R/opt/local -L/opt/local/lib "
-        #sleep 20
+        #{extra_flags}
         source .bashrc
 
-        # first check /modpkg/ruby if version exists
-        # if true, copy ruby from S3
-        # else install
-        # then copy new install to S3
-        if ( which ruby && ( rbenv versions | grep  1.9 ) ) &>/dev/null
+        if ( which ruby && ( rbenv versions | grep #{ruby} ) ) &>/dev/null
           then echo "#{ruby} already installed";
           echo > /tmp/ruby_installed
         elif [ -f $HOME/smartos-base64-1.7.1/#{rbenv_user}/#{ruby}.tar.gz ];
@@ -88,10 +89,10 @@ search(:users, node['rbenv']['users_query']) do |u|
         else
           # make sure to create os/version folder for ruby
           [  -d $HOME/smartos-base64-1.7.1/#{rbenv_user} ] || echo "creating pkg directory..." && mkdir -p $HOME/smartos-base64-1.7.1/#{rbenv_user}
-          echo "installing ruby from source..." && \
+          echo "installing ruby #{ruby} from source..." && \
           rbenv install #{ruby} && echo "creating tar file" && cd .rbenv/versions/ && \
           mkdir -p $HOME/smartos-base64-1.7.1/#{rbenv_user} && \
-          tar -czf $HOME/smartos-base64-1.7.1/#{rbenv_user}/1.9.3-p194.tar.gz 1.9.3-p194;
+          tar -czf $HOME/smartos-base64-1.7.1/#{rbenv_user}/#{ruby}.tar.gz #{ruby};
         fi
         rbenv rehash
         rbenv global #{ruby}
