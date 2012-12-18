@@ -63,11 +63,14 @@ search(:users, node['rbenv']['users_query']) do |u|
 
   rubies.each do |ruby|
     # Fix me a hash would be better  
+   
+    Chef::Log.info"INSTALL RUBY ===================> #{ruby}"
+
     extra_flags =" export CFLAGS='-DBYTE_ORDER -DLITTLE_ENDIAN' \
                    export ac_cv_func_dl_iterate_phdr=no \
                    export rb_cv_have_signbit=no " if ruby.eql?("1.9.3-p327")
     
-    bash "install rubies" do
+    bash "install #{ruby}" do
       user rbenv_user
       cwd rbenv_user_dir
       code <<-EOH
@@ -84,7 +87,7 @@ search(:users, node['rbenv']['users_query']) do |u|
           then echo "#{ruby} already installed";
           echo > /tmp/ruby_installed
         elif [ -f $HOME/smartos-base64-1.7.1/#{rbenv_user}/#{ruby}.tar.gz ];
-          then echo "copying ruby from LOCAL directory..." > /tmp/copy && mkdir -p  $HOME/.rbenv/versions &&  \
+          then echo "copying #{ruby}  from LOCAL directory..." >> /tmp/copy && mkdir -p  $HOME/.rbenv/versions &&  \
           tar -xzf $HOME/smartos-base64-1.7.1/#{rbenv_user}/#{ruby}.tar.gz -C $HOME/.rbenv/versions
         else
           # make sure to create os/version folder for ruby
