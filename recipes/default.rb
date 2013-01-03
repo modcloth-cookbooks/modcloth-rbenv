@@ -15,10 +15,8 @@ search(:users, node['rbenv']['users_query']) do |u|
   rubies = u['ruby']
   rbenv_dir = "#{rbenv_user_dir}/.rbenv"
 
-  bash "change permisions" do
-    code <<-EOH
-       chown -R #{rbenv_user}:#{rbenv_user} #{rbenv_user_dir}
-    EOH
+  bash 'change permissions' do
+    code "chown -R #{rbenv_user}:#{rbenv_user} #{rbenv_user_dir}"
   end
 
   git rbenv_dir do
@@ -62,14 +60,14 @@ search(:users, node['rbenv']['users_query']) do |u|
   end
 
   rubies.each do |ruby|
-    # Fix me a hash would be better  
-   
+    # Fix me a hash would be better
+
     Chef::Log.info"INSTALL RUBY ===================> #{ruby}"
 
     extra_flags =" export CFLAGS='-DBYTE_ORDER -DLITTLE_ENDIAN' \
                    export ac_cv_func_dl_iterate_phdr=no \
                    export rb_cv_have_signbit=no " if ruby.eql?("1.9.3-p327")
-    
+
     bash "install #{ruby}" do
       user rbenv_user
       cwd rbenv_user_dir
