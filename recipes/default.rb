@@ -11,7 +11,6 @@
 # (or some other query) and install rubies
 
 include_recipe "autofs::smartos"
-domain = node.domain
 
 search(:users, node['rbenv']['users_query']) do |u|
   rbenv_user = u['username'] ||= u['id']
@@ -32,26 +31,18 @@ search(:users, node['rbenv']['users_query']) do |u|
     action :sync
   end
 
-  if node['rbenv']['bash_env_file']
-    cookbook_file "#{node['rbenv']['bash_env_file']}" do
-      owner rbenv_user
-      mode 0644
-      source 'bash_env'
-      action :create
-    end
-  else
-    cookbook_file "#{rbenv_user_dir}/.bashrc" do
-      owner rbenv_user
-      mode '0744'
-      source "bashrc"
-      action :create
-    end
-    cookbook_file "#{rbenv_user_dir}/.bash_profile" do
-      owner rbenv_user
-      mode '0744'
-      source "bashrc"
-      action :create
-    end
+  cookbook_file "#{rbenv_user_dir}/.bashrc" do
+    owner rbenv_user
+    mode '0744'
+    source "bashrc"
+    action :create
+  end
+
+  cookbook_file "#{rbenv_user_dir}/.bash_profile" do
+    owner rbenv_user
+    mode '0744'
+    source "bash_profile"
+    action :create
   end
 
   directory "#{rbenv_user_dir}/.rbenv/plugins" do
@@ -81,11 +72,11 @@ search(:users, node['rbenv']['users_query']) do |u|
         export CONFIGURE_OPTS='--with-opt-dir=/opt/local'
         # ruby compile flags to link correctly for smartos
         export LDFLAGS="-R/opt/local -L/opt/local/lib "
-        export FILER="/net/filer.#{domain}/export/ModCloth/shared02/installations/rbenv"
-        export OS_VERSION=`uname -a | awk '{print $4}'`
+        export FILER="/net/filer/export/ModCloth/shared02/installations/rbenv"
+        export OS_VERSION=`uname -v`
         #{extra_flags}
         source .bashrc
-
+                
         if [ -d $HOME/.rbenv/versions/#{ruby} ]; then
           echo "ruby #{ruby} already installed..."
         elif [ -f $FILER/$OS_VERSION/#{rbenv_user}/#{ruby}.tar.gz ]; then
