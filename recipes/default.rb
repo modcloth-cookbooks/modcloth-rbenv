@@ -13,8 +13,8 @@
 include_recipe "autofs::smartos"
 
 search(:users, node['rbenv']['users_query']) do |u|
-  rbenv_user = u['username'] ||= u['id']
-  rbenv_group = u['group']
+  rbenv_user = u['username'] ||= u['uid']
+  rbenv_group = u['group'] ||= u['gid']
   rbenv_user_dir = "/home/#{rbenv_user}"
   rubies = u['ruby']
   rbenv_dir = "#{rbenv_user_dir}/.rbenv"
