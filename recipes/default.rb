@@ -82,26 +82,27 @@ search(:users, node['rbenv']['users_query']) do |u|
         # ruby compile flags to link correctly for smartos
         export LDFLAGS="-R/opt/local -L/opt/local/lib "
         export FILER="/net/filer.#{domain}/export/ModCloth/shared02/installations/rbenv"
+        export OS_VERSION=`uname -a | awk '{print $4}'`
         #{extra_flags}
         source .bashrc
 
         if [ -d $HOME/.rbenv/versions/#{ruby} ]; then
           echo "ruby #{ruby} already installed..."
-        elif [ -f $FILER/smartos-base64-1.7.1/#{rbenv_user}/#{ruby}.tar.gz ]; then
+        elif [ -f $FILER/$OS_VERSION/#{rbenv_user}/#{ruby}.tar.gz ]; then
           echo "installing ruby #{ruby} from filer..."
           mkdir -p $HOME/.rbenv/versions
-          tar -xzf $FILER/smartos-base64-1.7.1/#{rbenv_user}/#{ruby}.tar.gz -C $HOME/.rbenv/versions
+          tar -xzf $FILER/$OS_VERSION/#{rbenv_user}/#{ruby}.tar.gz -C $HOME/.rbenv/versions
         else
-          if [ ! -d $FILER/smartos-base64-1.7.1/#{rbenv_user} ]; then
+          if [ ! -d $FILER/$OS_VERSION/#{rbenv_user} ]; then
             echo "creating pkg directory..."
-            mkdir -p $FILER/smartos-base64-1.7.1/#{rbenv_user}
+            mkdir -p $FILER/$OS_VERSION/#{rbenv_user}
           fi
           echo "installing ruby #{ruby} from source..."
           rbenv install #{ruby}
           echo "putting ruby #{ruby} on the filer for safe keeping..."
           cd .rbenv/versions/
-          mkdir -p $FILER/smartos-base64-1.7.1/#{rbenv_user}
-          tar -czf $FILER/smartos-base64-1.7.1/#{rbenv_user}/#{ruby}.tar.gz #{ruby}
+          mkdir -p $FILER/$OS_VERSION/#{rbenv_user}
+          tar -czf $FILER/$OS_VERSION/#{rbenv_user}/#{ruby}.tar.gz #{ruby}
         fi
         
         rbenv rehash
