@@ -85,20 +85,23 @@ search(:users, node['rbenv']['users_query']) do |u|
         #{extra_flags}
         source .bashrc
 
-        if ( which ruby && ( rbenv versions | grep #{ruby} ) ) &>/dev/null
-          then echo "#{ruby} already installed!";
-          echo > /tmp/ruby_installed
-        elif [ -f $FILER/smartos-base64-1.7.1/#{rbenv_user}/#{ruby}.tar.gz ];
-          then echo "copying ruby from LOCAL directory..." > /tmp/copy && mkdir -p $HOME/.rbenv/versions && \
+        if [ -d $HOME/.rbenv/versions/#{ruby} ]; then
+          echo "ruby #{ruby} already installed..."
+        elif [ -f $FILER/smartos-base64-1.7.1/#{rbenv_user}/#{ruby}.tar.gz ]; then
+          echo "installing ruby #{ruby} from filer..."
+          mkdir -p $HOME/.rbenv/versions
           tar -xzf $FILER/smartos-base64-1.7.1/#{rbenv_user}/#{ruby}.tar.gz -C $HOME/.rbenv/versions
         else
-          # make sure to create os/version folder for ruby
-          [ -d $FILER/smartos-base64-1.7.1/#{rbenv_user} ] || echo "creating pkg directory..." && \
+          if [ ! -d $FILER/smartos-base64-1.7.1/#{rbenv_user} ]; then
+            echo "creating pkg directory..."
+            mkdir -p $FILER/smartos-base64-1.7.1/#{rbenv_user}
+          fi
+          echo "installing ruby #{ruby} from source..."
+          rbenv install #{ruby}
+          echo "putting ruby #{ruby} on the filer for safe keeping..."
+          cd .rbenv/versions/
           mkdir -p $FILER/smartos-base64-1.7.1/#{rbenv_user}
-          echo "installing ruby #{ruby} from source..." && \
-          rbenv install #{ruby} && echo "creating tar file" && cd .rbenv/versions/ && \
-          mkdir -p $FILER/smartos-base64-1.7.1/#{rbenv_user} && \
-          tar -czf $FILER/smartos-base64-1.7.1/#{rbenv_user}/#{ruby}.tar.gz #{ruby};
+          tar -czf $FILER/smartos-base64-1.7.1/#{rbenv_user}/#{ruby}.tar.gz #{ruby}
         fi
         
         rbenv rehash
