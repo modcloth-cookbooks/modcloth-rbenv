@@ -1,1 +1,1 @@
-default['rbenv']['users_query'] = 'ruby:*'
+default['rbenv']['default_ruby'] = '1.9.3-p194'
