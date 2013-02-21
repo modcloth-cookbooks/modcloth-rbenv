@@ -64,7 +64,7 @@ action :install do
       su - ${USER} -c "source .bashrc && rbenv rehash"
       su - ${USER} -c "source .bashrc && rbenv global ${RUBY}"
       
-      if su - ${USER} -c "source .bashrc && rbenv which bundle"; then
+      if su - ${USER} -c "source .bashrc && which bundle"; then
         echo 'bundler already installed'
       else
         su - ${USER} -c "source .bashrc && gem install bundler"
