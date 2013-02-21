@@ -14,13 +14,7 @@ action :install do
     action :create
   end
 
-  cookbook_file "/tmp/install_ruby.sh" do
-    mode '0755'
-    source "install_ruby.sh"
-    action :create
-  end
-
-  git "/home/#{new_resource.user}" do
+  git "/home/#{new_resource.user}/.rbenv" do
     user new_resource.user
     repository "git://github.com/sstephenson/rbenv.git"
     action :sync
@@ -29,6 +23,7 @@ action :install do
   directory "/home/#{new_resource.user}/.rbenv/plugins" do
     owner new_resource.user
     action :create
+    only_if "ls /home/#{new_resource.user}/.rbenv"
   end
 
   git "/home/#{new_resource.user}/.rbenv/plugins/ruby-build" do
@@ -38,55 +33,46 @@ action :install do
   end
   
   bash "installing ruby '#{new_resource.ruby}' for user '#{new_resource.user}'" do
-    user new_resource.user
     code <<-EOH
-      cd ~
-
-      ACTION=$1
-      USER=$2
-      RUBY=$3
-
-      HOME="/home/${USER}"
-      TMPDIR="${HOME}"
-      PREFIX="${HOME}/.rbenv/versions/${RUBY}"
-      CONFIGURE_OPTS="--with-opt-dir=/opt/local"
-      LDFLAGS="-R/opt/local -L/opt/local/lib "
-
-      FILER="/net/filer/export/ModCloth/shared02/installations/rbenv"
-      OS_VERSION=`uname -v`
-
-      source .bashrc
-
-      if [ -d $HOME/.rbenv/versions/${RUBY} ]; then
-        echo "ruby #{ruby} already installed..."
+      export USER="#{new_resource.user}"
+      export RUBY="#{new_resource.ruby}"
+      
+      export FILER="/net/filer/export/ModCloth/shared02/installations/rbenv"
+      export OS_VERSION=`uname -v`
+      
+      if [ -d /home/${USER}/.rbenv/versions/${RUBY} ]; then
+        echo "ruby ${RUBY} already installed..."
       elif [ -f $FILER/$OS_VERSION/${USER}/${RUBY}.tar.gz ]; then
         echo "installing ruby ${RUBY} from filer..."
-        mkdir -p $HOME/.rbenv/versions
-        tar -xzf $FILER/$OS_VERSION/${USER}/${RUBY}.tar.gz -C $HOME/.rbenv/versions
+        mkdir -p /home/${USER}/.rbenv/versions
+        tar -xzf $FILER/$OS_VERSION/${USER}/${RUBY}.tar.gz -C ${DIR}/.rbenv/versions
       else
-          if [ ! -d $FILER/$OS_VERSION/${USER} ]; then
-            echo "creating pkg directory..."
-            mkdir -p $FILER/$OS_VERSION/#{rbenv_user}
-          fi
         echo "installing ruby ${RUBY} from source..."
-        rbenv install ${RUBY}
+        su - ${USER} -c "source .bashrc && rbenv install ${RUBY}"
+      fi
+      
+      if [ ! -f $FILER/$OS_VERSION/${USER}/${RUBY}.tar.gz ]; then
+        if [ ! -d $FILER/$OS_VERSION/${USER} ]; then
+          echo "creating pkg directory..."
+          mkdir -p $FILER/$OS_VERSION/${USER}
+        fi
         echo "putting ruby ${RUBY} on the filer for safe keeping..."
-        cd .rbenv/versions/
-        mkdir -p $FILER/$OS_VERSION/${USER}
+        cd /home/${USER}/.rbenv/versions/
         tar -czf $FILER/$OS_VERSION/${USER}/${RUBY}.tar.gz ${RUBY}
       fi
-
-      rbenv rehash
-      rbenv global ${RUBY}
-
-      if rbenv which bundle; then
+      
+      su - ${USER} -c "source .bashrc && rbenv rehash"
+      su - ${USER} -c "source .bashrc && rbenv global ${RUBY}"
+      
+      if su - ${USER} -c "source .bashrc && rbenv which bundle"; then
         echo 'bundler already installed'
       else
-        gem install bundler
+        su - ${USER} -c "source .bashrc && gem install bundler"
       fi
-
-      rbenv rehash
+      
+      su - ${USER} -c "source .bashrc && rbenv rehash"
     EOH
+    only_if "ls /home/#{new_resource.user}/.bashrc"
   end
   
   bash "change permissions" do
@@ -101,7 +87,7 @@ action :remove do
 
   bash "removing ruby '#{new_resource.ruby}' for user '#{new_resource.user}'" do
     code <<-EOH
-      /tmp/install_ruby.sh remove #{new_resource.user} #{new_resource.ruby}
+      echo "blah"
     EOH
   end
 
