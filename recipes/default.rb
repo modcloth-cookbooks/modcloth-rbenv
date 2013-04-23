@@ -78,17 +78,17 @@ if node['rbenv']['users_query']
           if ( which ruby && ( ls #{rbenv_user_dir}/.rbenv/versions | grep #{ruby} ) ) &>/dev/null
             then echo "#{ruby} already installed!";
             echo > /tmp/ruby_installed
-          elif [ -f $HOME/smartos-rbenv/#{rbenv_user}/#{ruby}.tar.gz ];
+          elif [ -f $HOME/rbenv-rubies-tarballs/#{rbenv_user}/#{ruby}.tar.gz ];
             then echo "copying #{ruby}  from LOCAL directory..." >> /tmp/copy && mkdir -p  $HOME/.rbenv/versions &&  \
-            tar -xzf $HOME/smartos-rbenv/#{rbenv_user}/#{ruby}.tar.gz -C $HOME/.rbenv/versions
+            tar -xzf $HOME/rbenv-rubies-tarballs/#{rbenv_user}/#{ruby}.tar.gz -C $HOME/.rbenv/versions
           else
             # make sure to create os/version folder for ruby
-            [  -d $HOME/smartos-rbenv/#{rbenv_user} ] || echo "creating pkg directory..." && mkdir -p $HOME/smartos-rbenv/#{rbenv_user}
+            [  -d $HOME/rbenv-rubies-tarballs/#{rbenv_user} ] || echo "creating pkg directory..." && mkdir -p $HOME/rbenv-rubies-tarballs/#{rbenv_user}
             echo "installing ruby #{ruby} from source..." && \
             rbenv install #{ruby} \
             rbenv install #{ruby} && echo "creating tar file" && cd .rbenv/versions/ && \
-            mkdir -p $HOME/smartos-rbenv/#{rbenv_user} && \
-            tar -czf $HOME/smartos-rbenv/#{rbenv_user}/#{ruby}.tar.gz #{ruby};
+            mkdir -p $HOME/rbenv-rubies-tarballs/#{rbenv_user} && \
+            tar -czf $HOME/rbenv-rubies-tarballs/#{rbenv_user}/#{ruby}.tar.gz #{ruby};
           fi
 
           rbenv rehash
