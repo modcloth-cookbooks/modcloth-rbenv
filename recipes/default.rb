@@ -10,7 +10,7 @@
 # traverse users in data bag and see if they set a ruby attribute
 # (or some other query) and install rubies
 
-if node['rbenv']['users_query']
+unless node['rbenv'].nil?
   search(:users, "id:#{node['rbenv']['users_query']}") do |u|
     rbenv_user = u['username'] ||= u['uid']
     rbenv_group = u['group'] ||= u['gid']
@@ -57,7 +57,8 @@ if node['rbenv']['users_query']
 
     rubies.each do |ruby|
       # Fix me a hash would be better
-      extra_flags =" export CFLAGS='-DBYTE_ORDER -DLITTLE_ENDIAN' " if ruby.eql?("1.9.3-p327")
+      extra_flags =' export CFLAGS="-DBYTE_ORDER -DLITTLE_ENDIAN" ' if ruby == '1.9.3-p327'
+      extra_flags =' export CFLAGS="-R -fPIC" ' if ruby == '2.0.0-p195'
 
       bash "installing ruby #{ruby}" do
         user rbenv_user
