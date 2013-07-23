@@ -45,7 +45,7 @@ action :install do
       elif [ -f $FILER/$OS_VERSION/${USER}/${RUBY}.tar.gz ]; then
         echo "installing ruby ${RUBY} from filer..."
         mkdir -p /home/${USER}/.rbenv/versions
-        tar -xzf $FILER/$OS_VERSION/${USER}/${RUBY}.tar.gz -C ${DIR}/.rbenv/versions
+        tar -xzf $FILER/$OS_VERSION/${USER}/${RUBY}.tar.gz -C /home/${USER}/.rbenv/versions
       else
         echo "installing ruby ${RUBY} from source..."
         su - ${USER} -c "source .bashrc && rbenv install ${RUBY}"
@@ -67,6 +67,7 @@ action :install do
       if su - ${USER} -c "source .bashrc && which bundle"; then
         echo 'bundler already installed'
       else
+        echo 'installing bundler...'
         su - ${USER} -c "source .bashrc && gem install bundler"
       fi
       
