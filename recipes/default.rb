@@ -58,7 +58,7 @@ unless node['rbenv'].nil?
     rubies.each do |ruby|
       # Fix me a hash would be better
       extra_flags =' export CFLAGS="-DBYTE_ORDER -DLITTLE_ENDIAN" ' if ruby == '1.9.3-p327'
-      extra_flags =' export CFLAGS="-R -fPIC" ' if ruby == '2.0.0-p195'
+      extra_flags =' export CFLAGS="-R -fPIC" ' if %w(2.0.0-p195 2.0.0-p247).include?(ruby)
 
       bash "installing ruby #{ruby}" do
         user rbenv_user
