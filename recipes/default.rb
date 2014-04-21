@@ -20,14 +20,8 @@ unless node['rbenv'].nil?
 
     bash "change permisions" do
       code <<-EOH
-         chown -R #{rbenv_user}:#{rbenv_user} #{rbenv_user_dir}
+        chown -R #{rbenv_user}:#{rbenv_user} #{rbenv_user_dir}
       EOH
-    end
-
-    git rbenv_dir do
-      user rbenv_user
-      repository "git://github.com/sstephenson/rbenv.git"
-      action :sync
     end
 
     cookbook_file "#{rbenv_user_dir}/.bashrc" do
@@ -44,6 +38,12 @@ unless node['rbenv'].nil?
       action :create
     end
 
+    git rbenv_dir do
+      user rbenv_user
+      repository "git://github.com/sstephenson/rbenv.git"
+      action :sync
+    end
+
     directory "#{rbenv_user_dir}/.rbenv/plugins" do
       owner rbenv_user
       action :create
@@ -57,8 +57,9 @@ unless node['rbenv'].nil?
 
     rubies.each do |ruby|
       # Fix me a hash would be better
-      extra_flags =' export CFLAGS="-DBYTE_ORDER -DLITTLE_ENDIAN" ' if ruby == '1.9.3-p327'
-      extra_flags =' export CFLAGS="-R -fPIC" ' if %w(2.0.0-p195 2.0.0-p247).include?(ruby)
+      extra_flags = ' export CFLAGS="-DBYTE_ORDER -DLITTLE_ENDIAN" ' if ruby == '1.9.3-p327'
+      extra_flags = ' export CFLAGS="-march=native -O3 -pipe -fomit-frame-pointer" '
+      extra_flags = ' export CFLAGS="-R -fPIC -march=native -O3 -pipe -fomit-frame-pointer" ' if %w(2.0.0-p195 2.0.0-p451).include?(ruby)
 
       bash "installing ruby #{ruby}" do
         user rbenv_user
